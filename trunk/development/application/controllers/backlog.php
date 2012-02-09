@@ -19,6 +19,7 @@ class Backlog extends CI_Controller{
 	public function index(){
 		$data['project'] = $this->bklg->get_projects();
 		$data['page'] = 'home';
+		if(isset($_POST['project'])) $data['sprint_backlog'] = $this->bklg->get_backlog($_POST['project']);
 		$this->template($data);
 	}
 	
@@ -27,8 +28,29 @@ class Backlog extends CI_Controller{
 	}
 	
 	private function insert_sprint(){
-		$data['page'] = 'form_sprint';
-		$this->template($data);
+		if(isset($_POST['backlog_id'])){
+			if(!isset($_POST['sprint_backlog'])){
+				$data['page'] = 'sprint_form';
+				$data['backlog_id'] = $_POST['backlog_id'];
+				$this->template($data);
+			}
+			else{
+				$data = array(
+					'date' => date('Y-m-d'),
+					'product_backlog_id' => $this->input->post('backlog_id'),
+					'title' => $this->input->post('title')
+				);
+				if($this->bklg->insert_sbacklog()) continue;
+				else
+					echo <<<HTML
+					<script type="text/javascript">
+						alert("Erro ao criar nova Sprint.");
+					</script>
+HTML;
+				redirect(site_url('backlog/'),'location');
+			}
+		}
+		else redirect(site_url('backlog/'),'location');
 	}
 	
 	public function project(){
